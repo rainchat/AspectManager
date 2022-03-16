@@ -1,0 +1,7 @@
+name: AspectManager
+version: ${project.version}
+main: com.rainchat.cubecore.CubeCorePlugin
+api-version: 1.13
+authors: [ rain_chat ]
+softdepend:
+  - Vault

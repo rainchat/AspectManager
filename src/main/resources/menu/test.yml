@@ -1,0 +1,34 @@
+menu-settings:
+  title: '&c&lExample Menu'
+
+  structure:
+    - "  s i z  "
+    - "  ggggg  "
+    - "  fpdnl  "
+
+group-buttons:
+  items:
+    TYPE: StateElement
+    CHAR-SLOT: 'f'
+    ITEM-MODIFAER:
+      MATERIAL: Book
+      NAME: "&6Категории"
+      LORE:
+        - "&7В этом разделе находятся все категории"
+
+menu-buttons:
+  page:
+    TYPE: StateElement
+    CHAR-SLOT: 'f'
+    ITEM-MODIFAER:
+      MATERIAL: Book
+      NAME: "&6Категории"
+      LORE:
+        - "&7В этом разделе находятся все категории"
+        - "&7"
+        - '&7Нажмите, чтобы посмотреть '
+        - '&7все доступные вам &aкатегории'
+    REQUEST:
+      - "[permission]test.to.menu"
+    ACTIONS:
+      - "[menu-open]tag-main"
