@@ -50,7 +50,6 @@
                                 </relocation>
                             </relocations>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <outputFile>C:\Users\super\OneDrive\Рабочий стол\McMarket\CustomServer\plugins\AspectManager.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>
