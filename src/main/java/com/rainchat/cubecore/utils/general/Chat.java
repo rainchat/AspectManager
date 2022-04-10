@@ -1,6 +1,7 @@
 package com.rainchat.cubecore.utils.general;
 
 import com.rainchat.cubecore.api.CubeCore;
+import com.rainchat.cubecore.hooks.PlaceholderAPIBridge;
 import com.rainchat.cubecore.utils.placeholder.PlaceholderSupply;
 import de.themoep.minedown.MineDown;
 import net.md_5.bungee.api.ChatMessageType;
@@ -21,7 +22,7 @@ public class Chat {
     private static final Pattern PH_KEY = Pattern.compile("%([\\w\\._-]+)%");
 
     private static final Pattern chatPattern = Pattern
-            .compile("\\s*%(tellraw|title|subtitle|actionbar)%\\s*((?:(?!%(?:tellraw|title|subtitle|actionbar)%).)*)");
+            .compile("\\s*%(chat|tellraw|title|subtitle|actionbar)%\\s*((?:(?!%(?:chat|tellraw|title|subtitle|actionbar)%).)*)");
 
 
     public static String color(String string) {
@@ -41,51 +42,59 @@ public class Chat {
             return;
 
         int tellrawPos = text.indexOf("%tellraw%");
+        int chatPos = text.indexOf("%chat%");
         int titlePos = text.indexOf("%title%");
         int subtitlePos = text.indexOf("%subtitle%");
         int actionbarPos = text.indexOf("%actionbar%");
-        if ((tellrawPos & titlePos & subtitlePos & actionbarPos) == -1) {
+        if ((tellrawPos & titlePos & subtitlePos & actionbarPos & chatPos) == -1) {
             text = CubeCore.getAPI().getPlaceholderManager().getReplacements(player, text);
             p.spigot().sendMessage(MineDown.parse(Color.parseHexString(text)));
             return;
         }
 
-
-        int nb = -1 >>> 1;
-
-        int matchStart = Math.min(Math.min(tellrawPos & nb, titlePos & nb),
-                Math.min(subtitlePos & nb, actionbarPos & nb));
-
-        if (matchStart > 0) {
-            p.spigot().sendMessage(MineDown.parse(Color.parseHexString(text)));
-        }
-
         if (player != null) {
+            text = PlaceholderAPIBridge.setPlaceholders(text, player);
+
+            StringBuilder textBuilder = new StringBuilder();
             StringBuilder tellrawBuilder = new StringBuilder();
             StringBuilder titleBuilder = new StringBuilder();
             StringBuilder subtitleBuilder = new StringBuilder();
             StringBuilder actionbarBuilder = new StringBuilder();
 
-            Matcher matcher = chatPattern.matcher(text.substring(matchStart));
+            Matcher matcher = chatPattern.matcher(text);
 
             while (matcher.find()) {
+
                 String type = matcher.group(1);
                 String message = matcher.group(2);
                 switch (type) {
                     case "tellraw" -> tellrawBuilder.append(message);
+                    case "chat" -> textBuilder.append(message).append("\n");
                     case "title" -> titleBuilder.append(message);
                     case "subtitle" -> subtitleBuilder.append(message);
                     case "actionbar" -> actionbarBuilder.append(message);
                     default -> {
                     }
                 }
+                String before = text.substring(0, matcher.start());
+                String after = text.substring(matcher.end());
+                text = before + after;
+                matcher = chatPattern.matcher(text);
             }
 
             String tellrawMessage = tellrawBuilder.toString();
+            String textMessage = textBuilder.toString();
             String titleMessage = titleBuilder.toString();
             String subtitleMessage = subtitleBuilder.toString();
             String actionbarMessage = actionbarBuilder.toString();
 
+
+            if (text.equals("")) {
+                player.sendMessage(text);
+            }
+            if (!textMessage.isEmpty()) {
+                player.sendMessage(textMessage);
+            }
             if (!tellrawMessage.isEmpty()) {
                 tellrawMessage = CubeCore.getAPI().getPlaceholderManager().getReplacements(player, tellrawMessage);
                 tellraw(player, tellrawMessage);
@@ -119,7 +128,6 @@ public class Chat {
 
 
     public static String translateRaw(String template, Player player, boolean prefixed, PlaceholderSupply<?>... replacementSource) {
-
         Matcher m = PH_KEY.matcher(template);
         while (m.find()) {
 
@@ -137,7 +145,8 @@ public class Chat {
         if (!template.isEmpty() && prefixed)
             template = Message.PREFIX.toString() + template;
 
-        return template;
+        template = PlaceholderAPIBridge.setPlaceholders(template, player);
+        return Color.parseHexString(template);
     }
 
     public static String translateRaw(String template, PlaceholderSupply<?>... replacementSource) {
@@ -192,7 +201,6 @@ public class Chat {
             }
             tempList.add(Color.parseHexString(template));
         }
-
         return tempList;
     }
 }
